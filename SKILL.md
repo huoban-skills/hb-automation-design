@@ -48,7 +48,7 @@ hac install-skills --output <hb-automation-design 所在目录>
 2. **先方案后配置**：必须先出"方案确认"并等用户确认，再落 JSON；不得凭经验先甩 JSON 草稿。
 3. **交互节点优先判断**：出方案前先判断动作是"用户发起并需确认/补字段"还是"纯后台同步/派生"。技术摩擦不能作为降级理由。详见 [references/design-principles.md](references/design-principles.md) 第一区。
 4. **节点流程图先确认**：节点结构和顺序初稿完成后，先把流程图或等价顺序结构发给用户确认；确认前不要补细字段、变量映射或提交 create/update。
-5. **自检关卡**：输出"方案确认"前，逐区走查 [references/preflight-checklist.md](references/preflight-checklist.md)；方案末尾必须按 output-formats 的格式附**一行「自检」**——命中项给结论并带节点号，未命中区写"—"，不复述方案内容。**没有「自检」行的方案视为未完成，不得请求用户确认。**
+5. **自检关卡（内部动作，不输出）**：输出"方案确认"前，必须逐区走查 [references/preflight-checklist.md](references/preflight-checklist.md)：对每个命中项，在方案节点清单里**指认出对应节点**（指认不到 = 方案缺节点，先补方案再输出）。走查结论不要写进方案——方案里**不出现**「自检」段落，体现自检的方式是方案本身完整。
 
 ## 工作流
 
