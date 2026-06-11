@@ -1,15 +1,8 @@
-# 各自动化类型的高频提醒与职责边界
+# 各自动化类型的高频提醒
 
 落地某一类型的配置前，对照本类型的避坑清单。基础结构、节点字段走 `hac automation docs show <key>`，本文件只放各类型的设计边界与 verified 陷阱。
 
-## 类型职责边界（避免选错入口）
-
-| 类型 | 负责 | 不负责（应切到） |
-| --- | --- | --- |
-| button | 按钮入口、显示位置、权限、显示规则、按钮里接入 `on_call` | 独立 `call` 本体（→ call）、后台异步处理（→ item_trigger） |
-| call | 独立 `call` 本体、`params` / `tips` / `button_name` / `output_variables` 及返回契约 | 按钮显示位置/权限/点击入口（→ button） |
-| item_trigger | 后台异步触发、`trigger_action` / `trigger_field_ids` / 权限组 / 并发 / 异步边界 | 需用户确认或页面交互（→ button / autofill） |
-| autofill | 填写页即时触发、`input_after` / `trigger_position` / `trigger_fields` / `backfill_trigger` 回填 | 保存后异步（→ item_trigger）、用户主动点击（→ button） |
+类型选择与切换边界以 `hac automation docs show workflow/intent-routing` 和 `hac automation docs show type/<类型>` 的“什么时候不要选”章节为准，本文件不重复维护。
 
 ## 按钮（button）
 
