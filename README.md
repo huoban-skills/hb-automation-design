@@ -33,9 +33,11 @@
 
 1. `hac automation docs show workflow/intent-routing` 判类型。
 2. 读取 `design-principles.md` 和当前类型的 `type-design-tips.md`。
-3. 内部方案自检后，按 `output-formats.md` 输出“方案确认”。
-4. 用户确认后，按需读取 `implementation-pitfalls.md`。
-5. 切到 `huoban-automation` 构建、校验、提交并验证编辑器回显。
+3. 按 `output-formats.md` 形成完整方案草稿，暂不发送。
+4. 对方案草稿强制执行一次独立自检；有缺项则修改后重新自检。
+5. 自检通过后才输出“方案确认”。
+6. 用户确认后，按需读取 `implementation-pitfalls.md`。
+7. 切到 `huoban-automation` 构建、校验、提交并验证编辑器回显。
 
 ## 安装
 
