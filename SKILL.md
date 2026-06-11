@@ -48,13 +48,13 @@ hac install-skills --output <hb-automation-design 所在目录>
 2. **先方案后配置**：必须先出"方案确认"并等用户确认，再落 JSON；不得凭经验先甩 JSON 草稿。
 3. **交互节点优先判断**：出方案前先判断动作是"用户发起并需确认/补字段"还是"纯后台同步/派生"。技术摩擦不能作为降级理由。详见 [references/design-principles.md](references/design-principles.md)。
 4. **节点流程图先确认**：节点结构和顺序初稿完成后，先把流程图或等价顺序结构发给用户确认；确认前不要补细字段、变量映射或提交 create/update。
-5. **自检关卡（内部动作，不输出）**：输出"方案确认"前，必须逐区走查 [references/preflight-checklist.md](references/preflight-checklist.md)：对每个命中项，在方案节点清单里**指认出对应节点**（指认不到 = 方案缺节点，先补方案再输出）。走查结论不要写进方案——方案里**不出现**「自检」段落，体现自检的方式是方案本身完整。
+5. **方案自检（内部动作，不输出）**：输出"方案确认"前，逐节反查 [references/design-principles.md](references/design-principles.md) 和当前类型的 [references/type-design-tips.md](references/type-design-tips.md)；对每个命中项，在方案节点清单里**指认出对应节点**（指认不到 = 方案缺节点，先补方案再输出）。方案里不出现「自检」段落，自检的体现是方案本身完整。
 
 ## 工作流
 
 1. **判类型**：先走 `hac automation docs show workflow/intent-routing` 选 automation-type 与触发节点。
 2. **读方案设计**：出方案前读 [references/design-principles.md](references/design-principles.md)，并只读 [references/type-design-tips.md](references/type-design-tips.md) 中当前自动化类型的小节。
-3. **出方案确认**：先走查 [references/preflight-checklist.md](references/preflight-checklist.md)（内部动作），再按 [references/output-formats.md](references/output-formats.md) 的逐节点格式输出，标题用"方案确认"，等用户确认（方案里不出现「自检」段落）。
+3. **出方案确认**：完成内部方案自检后，按 [references/output-formats.md](references/output-formats.md) 的逐节点格式输出，标题用"方案确认"，等用户确认（方案里不出现「自检」段落）。
 4. **读实现避坑**：用户确认方案后，构建 JSON 前读 [references/implementation-pitfalls.md](references/implementation-pitfalls.md)，只查当前流程命中的小节。
 5. **落地配置**：切到 `huoban-automation`，按其 8 步生成流程构建、校验、提交并验证编辑器回显。
 
