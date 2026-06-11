@@ -93,7 +93,7 @@
 
 ### 出方案前检查清单
 
-已集中到 [preflight-checklist.md](preflight-checklist.md)：输出"方案确认"前逐区走查，并在方案末尾按 output-formats 格式附「自检」小节。新增必检项一律加到该文件，不要回填到本节。
+已集中到 [preflight-checklist.md](preflight-checklist.md)：输出"方案确认"前逐区走查（内部动作，结论不输出到方案）。新增必检项一律加到该文件，不要回填到本节。
 
 ## 第二区：实现避坑（verified 经验，基础结构规则走 docs show）
 
