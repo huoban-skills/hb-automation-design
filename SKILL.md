@@ -48,16 +48,17 @@ hac install-skills --output <hb-automation-design 所在目录>
 2. **先方案后配置**：必须先出"方案确认"并等用户确认，再落 JSON；不得凭经验先甩 JSON 草稿。
 3. **交互节点优先判断**：出方案前先判断动作是"用户发起并需确认/补字段"还是"纯后台同步/派生"。技术摩擦不能作为降级理由。详见 [references/design-principles.md](references/design-principles.md) 第一区。
 4. **节点流程图先确认**：节点结构和顺序初稿完成后，先把流程图或等价顺序结构发给用户确认；确认前不要补细字段、变量映射或提交 create/update。
+5. **自检关卡**：输出"方案确认"前，逐区走查 [references/preflight-checklist.md](references/preflight-checklist.md)；方案末尾必须按 output-formats 的格式附「自检」小节——命中的区逐条给结论（写清对应节点编号），未命中的区写"不涉及"。**没有「自检」小节的方案视为未完成，不得请求用户确认。**
 
 ## 工作流
 
 1. **判类型**：先走 `hac automation docs show workflow/intent-routing` 选 automation-type 与触发节点。
 2. **读设计原则**：出方案前读 [references/design-principles.md](references/design-principles.md) 第一区（交互优先、循环设计、计算字段优先、API 设计、失败反馈）。
-3. **出方案确认**：按 [references/output-formats.md](references/output-formats.md) 的逐节点格式输出，标题用"方案确认"，等用户确认。
+3. **出方案确认**：先走查 [references/preflight-checklist.md](references/preflight-checklist.md)，再按 [references/output-formats.md](references/output-formats.md) 的逐节点格式输出（**末尾必须带「自检」小节**），标题用"方案确认"，等用户确认。
 4. **看类型专属提醒**：动手前对照 [references/type-specific-tips.md](references/type-specific-tips.md) 里对应类型的高频陷阱。
 5. **落地配置**：切到 `huoban-automation`，按其 8 步生成流程构建并校验。
 6. **构建时避坑**：写 JSON 时回查 [references/design-principles.md](references/design-principles.md) 第二区（from_relation_field、vars 保序、分类字段、筛选器、跨自动化返回值、编辑器回显）。
-7. **提交与认证**：管理自动化必须用登录态 `access_token`（`api_key` 只能查数据，写自动化会报 9600001）；hac token 模式写操作可能裸 500（缺 `x-huoban-token-company` 头），需用 `curl` 带登录态三件套提交；创建页子表预填的 `subtable_field_id` 要人机协同拿。详见 [references/design-principles.md](references/design-principles.md) 第二区"提交与认证实战避坑"。
+7. **提交与认证**：管理自动化必须用登录态 `access_token`（`api_key` 只能查数据，写自动化会报 9600001）；hac token 模式 create/update 不通（新版报 `unknown method` 501，旧版裸 500），需用 `curl` 直打 PaaS 带登录态三件套提交。详见 [references/design-principles.md](references/design-principles.md) 第二区"提交与认证实战避坑"。
 
 ## 分析已有自动化
 

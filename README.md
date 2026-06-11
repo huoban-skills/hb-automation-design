@@ -72,9 +72,9 @@ hb-automation-design/
 这些是真实落地中踩出来、verified 的坑：
 
 - **认证**：管理自动化必须用登录态 `access_token`，`api_key` 只能查数据，写自动化会报 `9600001`。
-- **提交**：hac token 模式写操作可能裸 500（缺 `x-huoban-token-company` 头），需用 `curl` 带登录态三件套（`authorization` + `x-huoban-tenant-id` + `x-huoban-token-company`）提交。
-- **创建页预填**：`interact_item_create` 的预填绑定依赖编辑器态，API 直灌需带 `mappings`、子表 relation 引用 `is_array=true`；必要时走人机协同在 UI 配。
-- **subtable_field_id**：API 抓不到，需人机协同（网页勾子表 → `get` 读回）。
+- **提交**：hac token 模式 create/update 不通（hac ≥0.26 走 `/ai/v1` 网关报 `unknown method` 501，旧版直打 PaaS 裸 500），需用 `curl` 直打 PaaS 带登录态三件套（`authorization` + `x-huoban-tenant-id` + `x-huoban-token-company`）提交。
+- **创建页预填**：`interact_item_create` 的 `launch_item` 预填有编辑器抹空陷阱，按 verified 写法配；拿不准时先壳后仿写（编辑器手选一次 → `get` 读回当样板）。
+- **subtable_field_id**：直接取自写模式 schema 的 `sub_table` 字段（hac ≥0.26 verified），无需人机协同。
 - **分类字段**：condition 里别用 `{C:表.字段.选项}` 公式，优先改用计算字段数值比较。
 
 ## License

@@ -80,6 +80,7 @@
 - 涉及签名、token、nonce、timestamp 的接口，方案里必须同时说明请求头、请求体和签名串之间的关系；`url / query / headers / body` 的真实发送内容必须与签名串完全一致。
 - 某些 `application/json` 接口仍会要求手工拼接 JSON 文本并参与签名，这时优先保留文本 body，不要机械改成对象 body；已有真实样本使用 `req_text_body + req_body_format: 6` 手工拼 JSON。
 - 按 JSON 解析时常读 `{#N|body.xxx}`；如果节点配置为"按文本解析"，方案里就要明确后续节点是读取整个 `{#N|body}`，而不是假定还能继续走 `body.xxx`。
+- **GET（及其他无 body 的请求）必须设为"无请求体"**：`hac automation skeleton --with-node api_call` 默认给的是 POST 取向的 `req_body_format: 6`(json) + `req_text_body` + `Content-Type: application/json`。配 GET 时要主动清掉请求体（去掉 `req_text_body` 与对应 `Content-Type` 头、把请求体设为"无"），不要沿用骨架的 json body——否则会留一坨多余配置，用户得手动改。落地阶段就处理，别留给用户。
 
 ### 结束与失败反馈设计
 
@@ -92,12 +93,7 @@
 
 ### 出方案前检查清单
 
-- 是否真的需要这个 automation，还是换一个入口更简单？
-- 是否有本可批量处理却被拆成循环？
-- 是否检查过字段归属、`data_type`、系统字段差异？
-- 是否补齐了 `condition` 结构？
-- 是否把第三方 API 的请求结构、解析方式、失败兜底讲清楚？
-- 是否可以复用现有节点和脚本，而不是重复造一套？
+已集中到 [preflight-checklist.md](preflight-checklist.md)：输出"方案确认"前逐区走查，并在方案末尾按 output-formats 格式附「自检」小节。新增必检项一律加到该文件，不要回填到本节。
 
 ## 第二区：实现避坑（verified 经验，基础结构规则走 docs show）
 
@@ -134,10 +130,9 @@
 
 ### 筛选器补充提醒
 
+- `em` / `spec_boolean` / 各类型操作符的结构化写法已由 `hac automation docs show field/condition` 权威覆盖，单条叶子优先用 `hac automation condition build` 生成，本节不再重复。
 - 能把目标筛选条件缩成 `item_id eq <某个具体记录ID>` 的场景，优先缩成 `item_id` 精确匹配。复杂关系字段筛选的编辑器回显风险显著高于 `item_id` 精确匹配。
-- 空/非空优先用 `em`；真/假常量优先用 `spec_boolean`，不要再绕 `EMPTY()` / `TRUE()` / `FALSE()`。
-- `query.em + {真}` = 为空，`query.em + {假}` = 不为空。`{真}` / `{假}` 对应 `vars: [{"scope":"spec_boolean","boolean":true/false,"is_launch_param":false}]`。
-- 官方数据筛选器文档：[https://s.apifox.cn/apidoc/docs-site/894643/doc-661258](https://s.apifox.cn/apidoc/docs-site/894643/doc-661258)。遇到 `condition.filter`、`query`、`target`、操作符枚举等问题，优先回这份官方文档核对。
+- 官方数据筛选器文档：[https://s.apifox.cn/apidoc/docs-site/894643/doc-661258](https://s.apifox.cn/apidoc/docs-site/894643/doc-661258)。遇到操作符枚举等存疑问题，可回官方文档交叉核对。
 
 ### 跨自动化返回值提醒
 
@@ -158,8 +153,8 @@
 
 - **relation 字段 ← 整条触发记录**（如 发货单.销售订单 ← 当前订单）：`code:"{触发的数据.数据ID}"`，var 用 `data_type:"item_id", field_id:"item_id", scope:"launch_item", type:"launch_item_single", is_array:false`。**不要用 `data_type:"item"` 不带 field_id 的整条 item 写法**——那个版本会被编辑器抹空。
 - **relation 字段 ← 触发记录的某关联附加字段**（如 发货单.客户 ← 订单.客户）：`code:"{触发的数据.<字段名>}"`，var 用 `data_type:"relation", field_id:<来源字段id>, is_array:true`。relation 字段值要 `is_array:true`，即便目标字段 `is_multi=0`。
-- **子表行预填引用循环元素**：var 用 `scope:"loop_element", type:"element", tag:"loop_subtable", target_id:<sub_tables[i].loop.id>, operative_scene_key:"item_create_element"`；引用整条元素用 `code:"{子表循环的内容.数据ID}"`（item_id 形式，关联回该明细行），引用元素某字段用 `code:"{子表循环的内容.<字段名>}"`。子表 relation 类 `field_params` 的 `belong_info.table_id` 是**字符串**。
-- **拿不准回显写法时的兜底（推荐）**：先 create 一个只配了壳的版本，让用户在编辑器里手选一次该字段（relation 选"触发的数据"/子表选好循环来源）→ 保存 → `hac automation get` 读回，以编辑器存下的 `code`/`vars` 结构为样板**原样仿写**其余字段，再 update。比盲配 `launch_item`/`loop_element` 可靠得多。这也正好和"创建页子表预填的 `subtable_field_id` 必须人机协同获取"是同一趟操作。
+- **子表行预填引用循环元素**：`sub_tables` 结构、`loop_subtable` 变量绑定与类型推断已由 `hac automation docs show node/sub_tables-loop-shared` 权威覆盖，以它为准。本文只补两个 verified 差异：var 需带 `operative_scene_key:"item_create_element"`；子表 relation 类 `field_params` 的 `belong_info.table_id` 是**字符串**。
+- **拿不准回显写法时的兜底（推荐）**：先 create 一个只配了壳的版本，让用户在编辑器里手选一次该字段（relation 选"触发的数据"/子表选好循环来源）→ 保存 → `hac automation get` 读回，以编辑器存下的 `code`/`vars` 结构为样板**原样仿写**其余字段，再 update。比盲配 `launch_item`/`loop_element` 可靠得多。
 
 ### 提交与认证实战避坑（hac CLI，verified）
 
@@ -167,14 +162,14 @@
 
 - **管理自动化必须用登录态 `access_token`，`api_key` 不行**：`api_key`（`HUOBAN_API_KEY`，`Open-Authorization` 头）只能查表 / 查数据 / 查工作区（走 OpenAPI / AI 网关）；创建·修改自动化走 PaaS 网关（`/paas/automation/...`），按**用户登录态**判权限。用 api_key 调会报 `非工作区或表格管理员，无权管理触发器`（code 9600001）——这不是"账号不是管理员"，而是 api_key 这种应用身份在 PaaS 接口下不被当作可管理触发器的用户。改用 token 模式：config 里设 `HUOBAN_ACCESS_TOKEN` + `HUOBAN_COMPANY_ID`（去掉 api_key）。access_token 从浏览器登录态抓：F12 → 任意请求头 `authorization: Bearer <token>`。
 
-- **hac token 模式缺 `x-huoban-token-company` / `x-huoban-tenant-id` 头 → 写操作裸 500**：hac token 模式只发 `Authorization: Bearer <access_token>`，不带这两个头。只读的 `verify` / `get` 不需要企业上下文，能过；但 `create` / `update`（真写入）后端要靠 `x-huoban-token-company` 定位企业，缺了就回 `code:500 服务内部错误`（裸 500，连真正的配置错误也一起吞掉）。**绕过办法**——照常用 hac `skeleton` / `config` / `validate` / `verify` 把 config 做对（这些 hac token 模式都能用），**只在最后 create/update 这一步改用 `curl` 直打 PaaS 接口**，带齐登录态三件套头：
+- **hac token 模式 create / update / verify 不通 → 改 `curl` 直打 PaaS（verified @ hac 0.26.1）**：hac ≥0.26 把自动化写操作改发 AI 网关 `https://api.huoban.com/ai/v1/paas/automation/...`，token 模式只带 `Authorization: Bearer <access_token>`，网关回 `unknown method`（code 501）；旧版直打 PaaS 缺 `x-huoban-token-company` 头则是裸 500——**两代报错不同，结论一致：hac 的 create/update 在 token 模式下都不通**。只读的 `get` 能用。**绕过办法**——照常用 hac `skeleton` / `config` / `validate` 把 config 做对（这些本地/只读步骤 token 模式都能用），**create/update 这一步改用 `curl` 直打 PaaS 接口**，带齐登录态三件套头：
   - `authorization: Bearer <access_token>`
   - `x-huoban-tenant-id: <租户ID>`（浏览器请求头 `x-huoban-tenant-id`）
   - `x-huoban-token-company: <加密串>`（浏览器请求头 `x-huoban-token-company`）
-  - 端点：create → `POST https://api.huoban.com/paas/automation/<type>`；update → `PUT https://api.huoban.com/paas/automation/<automation_id>`（端点 / method 可用 `hac automation update --automation-id <id> --config-file x.json --show-request` 反查）。
-  - body 用 hac validate/verify 通过的 config 文件（先 `del(.mappings)` 及 get 带回的顶层残留字段如 `button_id/status/tips/...`）。
+  - 端点：create → `POST https://api.huoban.com/paas/automation/<type>`（**不带 `/ai/v1` 前缀**）；update → `PUT https://api.huoban.com/paas/automation/<automation_id>`。body 结构可用 `hac automation create ... --show-request` 反查（注意把它显示的 `/ai/v1/paas/...` 换成 `/paas/...`）。
+  - body 用 hac validate 通过的 config 文件（先 `del(.mappings)` 及 get 带回的顶层残留字段如 `button_id/status/tips/...`）。
   - **补齐头后若仍 500，读 `errors.error_message`**——那才是真正的配置错误（裸 500 时被掩盖）。
 
 - **condition 里 category 不要用 `{C:表.字段.选项}` 公式**：后端写入时报 `script_error：变量无效或不存在`（`verify` 可能拦不住，到 create/update 才暴露）。优先改用等价的**计算字段数值比较**（例：按钮"订单状态∈未发货/部分发货才显示" → 改判"待发货总数 > 0"，正好命中计算字段优先原则，且避开 category 公式坑）；确需按选项筛选时用 `hac automation condition build` 配选项的结构化值，不要塞 `{C:}` 公式字面量。
 
-- **创建页子表预填的 `subtable_field_id` 必须人机协同获取**：它是父表侧的系统字段，`get-table` / 任何接口都抓不到，只能让人在网页端勾出来。流程：① 先 create 一个 `create_sub_table:false` 的按钮（主表预填、查明细可一并配）→ ② 人工在网页端编辑器里给「打开数据创建页」节点开启并保存"创建子表数据"、选好子表 → ③ `hac automation get --automation-id <id>` 读回 `sub_tables[0].target.subtable_field_id` 与系统生成的 `loop.id` → ④ 再 update 写入子表 `loop.target`（引用前序 `item_find_multi` 的 `found_items`，`data_type:item,is_array:true`）和子表 `field_params`（引用循环元素：`scope:loop_element,type:element,tag:loop_subtable,target_id:<loop.id>,operative_scene_key:item_create_element`）。**不要因为抓不到 subtable_field_id 就降级成后台 `loop_by_target + item_create`**——那是把"打开创建页让用户确认主子表"错误降级成后台静默创建。
+- **创建页子表预填的 `subtable_field_id` 直接取自写模式 schema（verified，hac ≥0.26）**：`hac table get-table --output-mode write` 返回的主表字段里含 `sub_table` 类型字段，该字段自身的 `field_id` 就是 `subtable_field_id`，子表表 ID 取其 `config.related_table_id`，同步开关看 `config.sub_table_sync`（结构见 `hac automation docs show data-model/table-relations`）。`loop.id` 也无需从编辑器读回，按 `lp`+6 位随机串自行生成（规则见 `node/sub_tables-loop-shared`）。**不要因为子表配置麻烦就降级成后台 `loop_by_target + item_create`**——那是把"打开创建页让用户确认主子表"错误降级成后台静默创建。
