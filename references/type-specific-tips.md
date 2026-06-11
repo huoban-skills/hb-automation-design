@@ -38,13 +38,7 @@
 - `{数据创建}` / `{数据修改}` / `{数据删除}` 只属于数据触发。
 - 要覆盖导入 / OpenAPI / 自动化写入时，优先评估是否应选"全部权限组"。
 - 数据触发支持最多 15 层涟漪触发；同表修改链有防循环限制，不能想当然指望无限级联。
-- 单条精确更新优先 `item_id eq {#N|获取的数据.数据ID}`，不要用业务字段组合重新定位同一条记录。
-- `item_find_multi` 的 `return_field_id` 一旦有值，返回的是**字段值集合**不是记录集合：下游字段用 `mode:"input"`，脚本 `code: "{#N|获取的数据}"`（裸，不接字段名），`vars` 里 `data_type` 写字段真实类型、`table_id` 写 `0`（形态 B，见 `hac automation docs show node/item_find_multi`）。
-- `item_update` 读"当前被修改的目标记录"字段用 `{目标数据.字段名}`，`vars` 里 `scope:"target_item" + type:"item"`，不要再加 `item_find` 先查一遍。
-- 更新"触发记录某 relation 字段指向的那条记录"时，`item_update.condition.filter.target` 直接写 `field_id:"item_id" + table_id:<目标表ID>`（**不带 `belong_info`**），值来源传 `{触发的数据.<关系字段>}`。
-- `field_params` 直接引用触发数据/前序结果/变量时**优先 `mode:"input"`**，脚本只填裸引用；只有需要函数、拼接、判断或单位转换时才切 `mode:"script"`。
-- 旧版 workflow 的 `ITEM(...)` / `FIELDS(...)` / `OBJ_GET(JSON2OBJ(...))` / `JSONPATH(...)` 读别表数据，迁数据触发时**不要原样塞进 `script`**；改为加 `item_find` / `item_find_multi` 节点，下游用 `{#N|获取的数据.字段名}` 消费。
-- `loop_by_target` 按需用：只是"查一组数据整体写进某字段"用 `item_find_multi` + `field_params` 即可；只有真要"对每条结果单独建下游记录或调接口"才走循环。
+- **实现期写法**（单条精确更新 / `return_field_id` 形态 B / `{目标数据}` / relation 字段定位 / `mode:"input"` vs `script` / 旧公式迁移 / `loop_by_target` 取舍）已移到 design-principles 第二区「数据触发（item_trigger）实现避坑」，构建 JSON 时回查那里。
 - 编辑链接：`https://app.huoban.com/admin/spaces/<space_id>/tables/<table_id>/automations/item_trigger/<automation_id>/edit`
 
 ## 自动填写（autofill）
