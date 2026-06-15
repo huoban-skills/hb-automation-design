@@ -2,6 +2,16 @@
 
 本文件记录 `hb-automation-design` 的重要变更。
 
+## 2026-06-15
+
+### 查表规则补充
+
+- 在 `SKILL.md` 强制规则「查表前置」中补充：同一张表的写模式结构在本次会话内查到后直接复用，不要反复 `get-table`；跨表场景按每张被引用表各查一次。缓存与复用机制以 `huoban-automation` 的 `01-cli/table-schema.md` 为准，本 skill 不重复。
+
+### 相关提交
+
+`bf9f3cc`
+
 ## 2026-06-11
 
 本轮包含 Claude 与 Codex 连续完成的结构优化、规则去重和 hac 0.26 对齐。
